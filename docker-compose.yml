@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:13-alpine # Using PostgreSQL 13, Alpine version for smaller size
+    container_name: resource_manager_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5432:5432" # Expose PostgreSQL port to host (optional, for direct access/debugging)
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=supersecret
+      - POSTGRES_DB=resource_manager_db
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: resource_manager_backend
+    ports:
+      - "8000:8000" # Expose backend port to host
+    volumes:
+      - ./backend:/app # Mount backend code for development (optional, remove for production-like build)
+                       # Note: If using this volume, changes in backend code will be reflected.
+                       # However, Python dependencies might need a rebuild if requirements.txt changes.
+                       # The start.sh script handles migrations on startup.
+    environment:
+      - DATABASE_URL=postgresql://admin:supersecret@db:5432/resource_manager_db
+      # Add any other backend-specific environment variables here
+    depends_on:
+      - db # Ensures db is started before backend
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: resource_manager_frontend
+    ports:
+      - "3380:80" # Map Nginx port 80 in container to 8080 on host
+                  # (to avoid conflict if host is already using 80 for something else)
+    # volumes:
+    #   - ./frontend/src:/app/src # Mount frontend source for development (optional, needs live reload server)
+                                 # This is more complex with Nginx serving static builds.
+                                 # Usually, for frontend dev, you run `npm run dev` outside Docker or in a dev-specific container.
+                                 # For a production-like build, no volume mount for code is typical.
+    depends_on:
+      - backend # Optional: if frontend needs backend to be up to fetch initial data during build (not typical for SPA served by Nginx)
+                # More relevant if frontend directly proxies to backend via Nginx.
+    restart: unless-stopped
+
+volumes:
+  postgres_data: # Named volume for persisting PostgreSQL data
+    driver: local

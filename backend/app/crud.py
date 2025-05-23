@@ -175,4 +175,3 @@ def get_statistics_data() -> Dict:
         "total_audio_duration_seconds": total_audio_duration_seconds, # Placeholder
         "changes_last_7_days": "Data for 7-day changes not available with in-memory storage."
     }
-```

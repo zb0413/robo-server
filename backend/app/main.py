@@ -114,4 +114,3 @@ async def get_statistics():
 # To run this app (from the 'backend' directory):
 # Ensure backend/requirements.txt is installed in your venv
 # uvicorn app.main:app --reload
-```
