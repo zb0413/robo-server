@@ -10,6 +10,16 @@
     <ul>
       <li v-for="file in resource.details" :key="file.id">
         {{ file.name }} ({{ file.type }}) - {{ file.file_path }}
+        <!-- Start: Added section for metadata -->
+        <div v-if="file.metadata && Object.keys(file.metadata).length > 0" class="metadata-section">
+          <strong>Metadata:</strong>
+          <ul>
+            <li v-for="(value, key) in file.metadata" :key="key">
+              {{ key }}: {{ value }}
+            </li>
+          </ul>
+        </div>
+        <!-- End: Added section for metadata -->
       </li>
     </ul>
      <p v-if="!resource.details || resource.details.length === 0">No file details available for this resource.</p>
@@ -28,6 +38,7 @@ interface ResourceFile {
   name: string;
   type: string;
   file_path: string;
+  metadata?: { [key: string]: any; }; // Add this line
 }
 interface Resource {
   id: string;

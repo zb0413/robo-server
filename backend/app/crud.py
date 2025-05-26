@@ -58,39 +58,40 @@ def create_resource_from_directory(directory_path: str) -> Tuple[Optional[Resour
                     continue
 
                 file_type = get_file_type(file_path)
-                metadata = None
+                extracted_metadata = None # Renamed from metadata to avoid confusion
                 detail_id = generate_id()
 
                 if file_type == 'image':
-                    metadata = get_image_metadata(file_path)
+                    extracted_metadata = get_image_metadata(file_path)
                     file_counts['image'] += 1
                 elif file_type == 'video':
-                    metadata = get_video_metadata(file_path)
-                    resource_data.total_video_duration += metadata.get("duration_seconds", 0.0)
+                    extracted_metadata = get_video_metadata(file_path)
+                    resource_data.total_video_duration += extracted_metadata.get("duration_seconds", 0.0)
                     file_counts['video'] += 1
                 elif file_type == 'audio':
-                    metadata = get_audio_metadata(file_path)
+                    extracted_metadata = get_audio_metadata(file_path)
                     # Add total_audio_duration to Resource model if needed
                     file_counts['audio'] += 1
                 elif file_type == 'text':
-                    metadata = get_text_metadata(file_path)
+                    extracted_metadata = get_text_metadata(file_path)
                     file_counts['text'] += 1
                 else: # 'other'
-                    metadata = get_other_metadata(file_path)
+                    extracted_metadata = get_other_metadata(file_path)
                     file_counts['other'] += 1
                 
-                if metadata:
+                if extracted_metadata: # Check if extracted_metadata is not None
                     common_detail_data = {
                         "id": detail_id,
-                        "name": metadata["name"],
+                        "name": extracted_metadata.get("name", os.path.basename(file_path)), # Use .get for safety
                         "type": file_type,
                         "file_path": file_path,
+                        "metadata": extracted_metadata # Assign the whole dict here
                     }
                     # Ensure all required fields for ResourceDetailCreate are present if it were used.
                     # Here, we directly construct ResourceDetail which includes 'id'.
                     res_detail = ResourceDetail(**common_detail_data)
                     current_resource_details.append(res_detail)
-                    total_disk_size_bytes += metadata.get("file_size_bytes", 0)
+                    total_disk_size_bytes += extracted_metadata.get("file_size_bytes", 0) # Use .get for safety
                 else:
                     logger.warning(f"Could not extract metadata for file: {file_path}")
 

@@ -1,11 +1,12 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from datetime import datetime
 
 class ResourceDetailBase(BaseModel):
     name: str
     type: str  # 'image', 'video', 'audio', 'text', 'other'
     file_path: str
+    metadata: Optional[Dict[str, Any]] = None
 
 class ResourceDetailCreate(ResourceDetailBase):
     pass
